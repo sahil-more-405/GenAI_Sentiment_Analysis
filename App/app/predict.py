@@ -1,4 +1,3 @@
-
 from transformers import DistilBertForSequenceClassification, DistilBertTokenizer
 import torch
 import torch.nn.functional as F
@@ -13,9 +12,9 @@ label_map = {0: "Negative", 1: "Neutral", 2: "Positive"}
 
 def predict(text: str) -> dict:
     """
-    This function takes a text string as input, tokenizes it, 
-    passes it through the DistilBERT model, and returns the predicted sentiment
-    and confidence score.
+    This function takes a text string as input, tokenizes it,
+    passes it through the DistilBERT model, and returns the predicted sentiment,
+    confidence score, and raw probabilities.
     """
     # Tokenize the input text
     inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True)
@@ -29,11 +28,15 @@ def predict(text: str) -> dict:
 
     # Get the predicted class index and confidence score
     confidence, predicted_class_idx = torch.max(probabilities, dim=1)
-    
+
     predicted_class_idx = predicted_class_idx.item()
     confidence = confidence.item()
 
     # Map the index to the corresponding label
     sentiment = label_map[predicted_class_idx]
 
-    return {"sentiment": sentiment, "confidence": confidence}
+    return {
+        "sentiment": sentiment,
+        "confidence": confidence,
+        "raw_confidence": probabilities.squeeze().tolist()
+    }

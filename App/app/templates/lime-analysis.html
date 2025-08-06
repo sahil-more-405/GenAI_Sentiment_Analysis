@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LIME Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a href="/">Home</a>
+            <a href="/chatbot">Chatbot</a>
+            <a href="/lime-analysis">LIME Analysis</a>
+        </nav>
+        <h1>LIME Analysis</h1>
+        <form action="/lime-analysis" method="post">
+            <textarea name="text" rows="4" placeholder="Enter text to analyze..."></textarea>
+            <button type="submit">Analyze with LIME</button>
+        </form>
+
+        {% if explanation %}
+        <div>
+            <h2>LIME Explanation</h2>
+            {{ explanation | safe }}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
