@@ -49,6 +49,8 @@
             border: 1px solid #e2e8f0;
             border-radius: 0.75rem;
             padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
         }
         .flow-arrow {
             font-size: 2rem;
@@ -85,6 +87,26 @@
             <p class="text-xl text-gray-600">A Technical Deep Dive</p>
         </section>
 
+        <div id="overview" class="slide">
+            <h2 class="slide-title">Project Overview & Innovations</h2>
+            <div class="space-y-6">
+                <div class="tech-box">
+                    <h3 class="font-semibold text-lg mb-2">Project Description</h3>
+                    <p class="text-gray-600">This project implements a robust system for classifying product reviews as Positive, Negative, or Neutral using a fine-tuned DistilBERT model. The end-to-end pipeline covers data ingestion, ETL, model training, and deployment of a sentiment scoring API using FastAPI and Docker.</p>
+                </div>
+                <div class="tech-box">
+                    <h3 class="font-semibold text-lg mb-2">Key Innovations</h3>
+                    <ul class="list-disc list-inside space-y-2 text-gray-600">
+                        <li><strong class="font-semibold text-gray-800">GenAI-Powered Chatbot with RAG:</strong> An empathetic, context-aware chatbot using Google's Gemini API.</li>
+                        <li><strong class="font-semibold text-gray-800">Innovative Weighted Loss Training:</strong> A custom trainer that prioritizes "helpful" reviews to maximize accuracy.</li>
+                        <li><strong class="font-semibold text-gray-800">Model Interpretability with LIME:</strong> A transparency dashboard to explain the "why" behind AI predictions.</li>
+                        <li><strong class="font-semibold text-gray-800">Scalable & Efficient Data Pipeline:</strong> A server-friendly pipeline for processing millions of reviews on standard hardware.</li>
+                        <li><strong class="font-semibold text-gray-800">Rigorous Hypothesis-Driven Experimentation:</strong> A data-validated approach to find the optimal training strategy.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
         <div id="dataset" class="slide">
             <h2 class="slide-title">The Dataset: Amazon Product Reviews</h2>
             <div class="grid md:grid-cols-2 gap-8">
@@ -114,10 +136,10 @@
                     <h3 class="font-semibold text-lg mb-2">2. Memory-Efficient ETL</h3>
                     <p class="text-gray-600 mb-4">Leverages the Hugging Face `datasets` library to handle massive files without loading them entirely into RAM, preventing memory overflow.</p>
                     <ul class="list-disc list-inside space-y-1 text-gray-600">
-                        <li>**Cleaning:** Removes residual HTML tags from review text.</li>
-                        <li>**Feature Engineering:** Concatenates `title` and `reviewText` for richer model input.</li>
-                        <li>**Labeling:** Maps `overall` score to `Positive` (≥4), `Negative` (≤2), or `Neutral` (3).</li>
-                        <li>**Balancing:** Samples data to ensure an equal number of reviews per sentiment class, preventing model bias.</li>
+                        <li><strong class="font-semibold text-gray-800">Cleaning:</strong> Removes residual HTML tags from review text.</li>
+                        <li><strong class="font-semibold text-gray-800">Feature Engineering:</strong> Concatenates `title` and `reviewText` for richer model input.</li>
+                        <li><strong class="font-semibold text-gray-800">Labeling:</strong> Maps `overall` score to `Positive` (≥4), `Negative` (≤2), or `Neutral` (3).</li>
+                        <li><strong class="font-semibold text-gray-800">Balancing:</strong> Samples data to ensure an equal number of reviews per sentiment class, preventing model bias.</li>
                     </ul>
                 </div>
             </div>
@@ -151,11 +173,11 @@
                 <p class="text-lg text-gray-600 max-w-3xl mx-auto">Explore the key capabilities of the final application, from instant sentiment analysis to advanced GenAI-powered interactions.</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="tech-box">
                     <h3 class="text-2xl font-bold mb-4">1. Sentiment Analysis</h3>
-                    <p class="text-gray-600 mb-4 flex-grow">The core function. The fine-tuned DistilBERT model analyzes any product review and classifies its sentiment with high accuracy and confidence.</p>
-                    <div class="bg-gray-100 p-4 rounded-lg text-center">
+                    <p class="text-gray-600 mb-4 flex-grow">DistilBERT is a lighter and faster version of Google's BERT language model, chosen for its efficiency. In this project, it was specifically fine-tuned using an innovative "Weighted Loss" strategy, which trained the model to pay more attention to reviews the community had already marked as "helpful". Ultimately, this custom-trained model decisively outperformed the baseline and other methods, achieving 88.14% accuracy, and was saved as the final, production-ready model for the application.</p>
+                    <div class="bg-gray-100 p-4 rounded-lg text-center mt-auto">
                         <p class="text-lg font-medium mb-3 italic text-gray-700">"This product is absolutely fantastic! The quality is outstanding."</p>
                         <div class="mt-3 text-center font-semibold text-xl text-green-600">
                             Prediction: Positive (98% Confident)
@@ -165,8 +187,8 @@
 
                 <div class="tech-box">
                     <h3 class="text-2xl font-bold mb-4">2. Model Transparency (LIME)</h3>
-                    <p class="text-gray-600 mb-4 flex-grow">To build trust, we use LIME to explain *why* the model makes a prediction. It highlights the words that most influenced the outcome.</p>
-                    <div class="bg-gray-100 p-4 rounded-lg text-center">
+                    <p class="text-gray-600 mb-4 flex-grow">LIME: Local Interpretable Model-agnostic Explanations (LIME) is a technique that explains why a complex "black box" AI model made a specific prediction on a single piece of data. It works by creating small variations of the input—like removing words from a review—and observing how those changes affect the model's final decision. By doing this, LIME identifies and highlights the key words that most influenced the outcome, which helps users understand and trust the AI's reasoning.</p>
+                    <div class="bg-gray-100 p-4 rounded-lg text-center mt-auto">
                         <p class="text-lg font-medium mb-3 leading-relaxed">"It was a <span class="bg-red-200 px-1 rounded">complete waste</span> of money. The item <span class="bg-red-200 px-1 rounded">broke</span> after just one use. Very <span class="bg-red-200 px-1 rounded">disappointed</span>."</p>
                         <div class="mt-3 text-center font-semibold text-xl text-red-600">
                             Explanation: Negative Prediction
@@ -174,10 +196,10 @@
                     </div>
                 </div>
                 
-                <div class="tech-box md:col-span-2 lg:col-span-1">
+                <div class="tech-box">
                     <h3 class="text-2xl font-bold mb-4">3. GenAI Chatbot (RAG)</h3>
-                    <p class="text-gray-600 mb-4 flex-grow">A sentiment-aware chatbot powered by Google's Gemini. It uses a novel RAG approach to provide empathetic, context-aware support.</p>
-                    <div class="bg-gray-100 p-4 rounded-lg space-y-3">
+                    <p class="text-gray-600 mb-4 flex-grow">RAG: It's considered a Retrieval-Augmented Generation (RAG) system because instead of retrieving factual text, it first retrieves the user's emotional state using its own specialized sentiment model. This retrieved sentiment then augments the prompt sent to the Gemini AI, providing critical context. Finally, Gemini generates a response that is intelligently tailored to the user's detected emotion, making it empathetic and context-aware.</p>
+                    <div class="bg-gray-100 p-4 rounded-lg space-y-3 mt-auto">
                         <div class="text-center text-sm font-medium text-gray-700">User: "My order is broken!"</div>
                         <div class="text-center text-2xl font-bold text-blue-600">↓</div>
                         <div class="bg-blue-100 text-blue-800 p-2 rounded-lg text-center">
@@ -221,6 +243,39 @@
                 <div class="flex-1 flex flex-col items-center">
                     <div class="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-2xl mb-2 shadow-inner">🚀</div>
                     <h4 class="font-bold">Container</h4>
+                </div>
+            </div>
+        </div>
+
+        <div id="tech-stack" class="slide">
+            <h2 class="slide-title">Tech Stack</h2>
+            <div class="tech-box">
+                <ul class="space-y-3 text-gray-700">
+                    <li><strong class="font-semibold text-gray-800">FastAPI:</strong> Used for building the high-performance backend API.</li>
+                    <li><strong class="font-semibold text-gray-800">Hugging Face Transformers:</strong> For leveraging the DistilBERT model and tokenizer.</li>
+                    <li><strong class="font-semibold text-gray-800">PyTorch:</strong> The deep learning framework used for model training and inference.</li>
+                    <li><strong class="font-semibold text-gray-800">Google Gemini API:</strong> Powers the GenAI-driven, sentiment-aware chatbot.</li>
+                    <li><strong class="font-semibold text-gray-800">LIME:</strong> Used for generating model interpretability explanations.</li>
+                    <li><strong class="font-semibold text-gray-800">Docker:</strong> For containerizing the application for reproducible deployment.</li>
+                    <li><strong class="font-semibold text-gray-800">Jinja2:</strong> For rendering the dynamic HTML templates in the frontend.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="challenges" class="slide">
+            <h2 class="slide-title">Challenges & Solutions</h2>
+            <div class="space-y-6">
+                <div class="tech-box">
+                    <h3 class="font-semibold text-lg mb-2">Challenge: Handling Massive Dataset on Limited Hardware</h3>
+                    <p class="text-gray-600">The Amazon reviews dataset was too large to fit into memory, causing crashes. We solved this by using the Hugging Face `datasets` library for memory-efficient processing and Python's `multiprocessing` to speed up data ingestion.</p>
+                </div>
+                <div class="tech-box">
+                    <h3 class="font-semibold text-lg mb-2">Challenge: Ensuring Fair Model Evaluation with Imbalanced Data</h3>
+                    <p class="text-gray-600">The dataset had a strong bias towards positive reviews, which could lead to a model that performs poorly on negative or neutral sentiment. We addressed this by implementing a stratified sampling strategy to create a balanced dataset, ensuring the model was trained and evaluated on an equal representation of all sentiment classes.</p>
+                </div>
+                <div class="tech-box">
+                    <h3 class="font-semibold text-lg mb-2">Challenge: Creating a Lean and Reproducible Docker Environment</h3>
+                    <p class="text-gray-600">Our initial Docker images were unnecessarily large and slow to build because `pip freeze` included many libraries from the local development environment that were not actually needed for the application. To solve this, we manually audited our code to identify the specific, essential packages. We then created a minimal `requirements.txt` file from scratch. This resulted in a significantly smaller, faster, and more secure Docker image, which is a best practice for production deployments.</p>
                 </div>
             </div>
         </div>
