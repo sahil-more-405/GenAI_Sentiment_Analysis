@@ -24,7 +24,7 @@ def get_smart_response(user_query: str, sentiment: str, knowledge_base: dict) ->
 
     # This is the core of the "GenAI" feature: a well-crafted prompt
     prompt = f"""
-    You are "Serene", an advanced, empathetic customer support AI. Your goal is to provide helpful answers while managing the user's emotional state.
+    You are "Sam", an advanced, empathetic customer support AI. Your goal is to provide helpful answers while managing the user's emotional state.
 
     **Analysis of User's Message:**
     - User's Message: "{user_query}"
