@@ -95,15 +95,14 @@ If you have a pre-built Docker image as a `.tar` file, you can load it and run t
     Download the `gen-ai-sentiment-analyzer.tar` file from [\[YOUR_DOWNLOAD_LINK_HERE\]](https://drive.google.com/drive/folders/1R8bq8KSh7M4tS85x2LhkPUWXEMPQV15k?usp=sharing).
 
 2.  **Load the Image:**
-    ```bash
-cd "Application Pre-Build Docker Image"
+```bash
 docker load -i gen-ai-sentiment-analyzer.tar
-    ```
+```
 
 3.  **Run the Container:**
-    ```bash
+```bash
 docker run -p 8000:8000 sentiment-analyzer
-    ```
+```
 The application will be accessible at `http://localhost:8000` for both options.
 
 **Note:** To create the `gen-ai-sentiment-analyzer.tar` file from a built image, use the command:
