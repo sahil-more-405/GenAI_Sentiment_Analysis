@@ -105,11 +105,6 @@ docker run -p 8000:8000 sentiment-analyzer
 ```
 The application will be accessible at `http://localhost:8000` for both options.
 
-**Note:** To create the `gen-ai-sentiment-analyzer.tar` file from a built image, use the command:
-```bash
-docker save -o gen-ai-sentiment-analyzer.tar sentiment-analyzer:latest
-```
-
 ### 4. Running Locally (Python)
 If you prefer not to use Docker:
 
