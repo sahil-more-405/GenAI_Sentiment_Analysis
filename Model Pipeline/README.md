@@ -65,5 +65,3 @@ This project successfully fulfills all the requirements of the "GenAI-Driven Pro
 * **ETL:** We use Python scripts for data cleaning and sentiment labeling.
 * **Model:** We use a DistilBERT model fine-tuned for sentiment analysis with Hugging Face Transformers.
 * **Training:** We use a local Python training script with PyTorch and the Hugging Face Trainer.
-
-This project is a testament to how smart technical choices and a rigorous, data-driven approach can lead to a high-performing and efficient machine learning solution.
