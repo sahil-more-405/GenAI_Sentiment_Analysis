@@ -2,45 +2,37 @@ from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
 import lime
 import lime.lime_text
 import numpy as np
 from app.predict import predict, tokenizer
+from app.gemini_client import get_smart_response # <-- IMPORT THE NEW FUNCTION
 
 app = FastAPI(
     title="GenAI-Driven Product Review Sentiment Analyzer",
-    description="A system that classifies product reviews as Positive, Negative, or Neutral using DistilBERT.",
-    version="1.0.0"
+    description="A system that classifies product reviews and provides sentiment-aware customer support using a hybrid model approach.",
+    version="2.0.0"
 )
 
-# Mount static files
+# Mount static files and templates
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
-# In-memory storage
+# In-memory storage for the demo
 recent_reviews = []
 chat_history = []
-cumulative_sentiment = 0
+negative_streak = 0
 conversation_over = False
 
-# Simple Knowledge Base for RAG
+# This now serves as context for the Gemini model
 KNOWLEDGE_BASE = {
-    "shipping": "Our standard shipping takes 3-5 business days. Expedited shipping is available for an additional cost.",
-    "return policy": "You can return any item within 30 days for a full refund. Please visit our returns page for more details.",
-    "track order": "To track your order, please use the tracking number sent to your email or visit the 'My Orders' section of your account.",
-    "contact": "You can contact our support team via the 'Contact Us' page on our website.",
-    "default": "I'm not sure how to answer that. Could you please rephrase your question?"
+    "shipping": "Our standard shipping takes 3-5 business days. Expedited options are available at checkout.",
+    "return_policy": "You can return any item within 30 days for a full refund. Please use the portal on our website.",
+    "track_order": "To track your order, please use the tracking number sent to your email.",
+    "contact_support": "You can reach our support team via the 'Contact Us' page on our website.",
 }
 
-def retrieve_from_kb(query: str) -> str:
-    """A simple retrieval function for our RAG-like structure."""
-    query = query.lower()
-    for keyword, answer in KNOWLEDGE_BASE.items():
-        if keyword in query:
-            return answer
-    return KNOWLEDGE_BASE["default"]
-
+# --- All other routes (/ , /predict, /lime-analysis) remain the same ---
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request, "reviews": recent_reviews})
@@ -49,11 +41,9 @@ async def home(request: Request):
 async def predict_text(request: Request, text: str = Form(...)):
     prediction = predict(text)
     review = {"text": text, "sentiment": prediction["sentiment"], "confidence": f"{prediction['confidence']:.2%}"}
-
     recent_reviews.insert(0, review)
     if len(recent_reviews) > 5:
         recent_reviews.pop()
-
     return templates.TemplateResponse("index.html", {"request": request, "prediction": review, "reviews": recent_reviews})
 
 @app.get("/chatbot", response_class=HTMLResponse)
@@ -62,9 +52,9 @@ async def chatbot_page(request: Request):
 
 @app.post("/chatbot", response_class=HTMLResponse)
 async def chat(request: Request, text: str = Form(...)):
-    global cumulative_sentiment, conversation_over
+    global negative_streak, conversation_over
 
-    if text.lower() in ["clear", "reset"]:
+    if text.lower().strip() in ["clear", "reset"]:
         startup_event()
         return templates.TemplateResponse("chatbot.html", {"request": request, "chat_history": chat_history, "conversation_over": conversation_over})
 
@@ -73,33 +63,34 @@ async def chat(request: Request, text: str = Form(...)):
 
     chat_history.append({"sender": "user", "message": text})
 
-    # 1. Analyze sentiment of the user's message
     prediction = predict(text)
     sentiment = prediction['sentiment']
 
-    # 2. Update cumulative sentiment score
-    if sentiment == 'Positive':
-        cumulative_sentiment += 1
-    elif sentiment == 'Negative':
-        cumulative_sentiment -= 1
+    if sentiment == 'Negative':
+        negative_streak += 1
+    else:
+        negative_streak = 0
 
-    # 3. Determine bot's response based on sentiment
-    if cumulative_sentiment < -1:
-        bot_message = "I'm sorry that I wasn't able to help you. I can connect you to a human agent to resolve this issue."
+    bot_message = ""
+    status = ""
+    
+    # **NEW ADAPTIVE LOGIC WITH GEMINI**
+    if negative_streak >= 2:
+        bot_message = "I'm very sorry you're having a frustrating experience. To make things right, here is a 15% discount coupon: **WINNER15**. If you'd prefer to speak to a person, you can reach our support helpline at **(555) 123-4567**."
+        status = "Escalating to Human Support"
         conversation_over = True
     else:
-        # 4. Retrieve answer from Knowledge Base (RAG)
-        bot_message = retrieve_from_kb(text)
-
-    # 5. Determine conversation status
-    if cumulative_sentiment <= -1:
-        status = "Negative"
-    elif cumulative_sentiment >= 1:
-        status = "Positive"
-    else:
-        status = "Neutral"
-
-    chat_history.append({"sender": "bot", "message": bot_message, "status": f"Conversation Status: {status}"})
+        # **CALL GEMINI INSTEAD OF THE OLD RAG FUNCTION**
+        bot_message = get_smart_response(text, sentiment, KNOWLEDGE_BASE)
+        
+        if sentiment == 'Negative':
+            status = "Sentiment: Negative 😠 (Adapting tone...)"
+        elif sentiment == 'Neutral':
+            status = "Sentiment: Neutral 😐 (Listening...)"
+        else:
+            status = "Sentiment: Positive 😊 (Happy to help!)"
+    
+    chat_history.append({"sender": "bot", "message": bot_message, "status": status})
 
     return templates.TemplateResponse("chatbot.html", {"request": request, "chat_history": chat_history, "conversation_over": conversation_over})
 
@@ -118,13 +109,14 @@ async def get_lime_analysis(request: Request, text: str = Form(...)):
         return np.array(raw_confidences)
 
     explanation = explainer.explain_instance(text, predictor, num_features=10, num_samples=500)
-
     return templates.TemplateResponse("lime-analysis.html", {"request": request, "explanation": explanation.as_html()})
+
 
 @app.on_event("startup")
 async def startup_event():
-    global cumulative_sentiment, conversation_over
+    global negative_streak, conversation_over
     recent_reviews.clear()
     chat_history.clear()
-    cumulative_sentiment = 0
+    negative_streak = 0
     conversation_over = False
+    chat_history.append({"sender": "bot", "message": "Welcome to our support chat! How can I help you today?", "status": "Sentiment: Neutral 😐 (Listening...)"})

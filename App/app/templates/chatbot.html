@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot</title>
+    <title>Sentiment-Aware Chatbot</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
 </head>
 <body>
@@ -13,24 +13,34 @@
             <a href="/chatbot">Chatbot</a>
             <a href="/lime-analysis">LIME Analysis</a>
         </nav>
-        <h1>Sentiment-Aware Chatbot</h1>
-        <div class="chat-box">
+        <h1>Sentiment-Aware Support Chatbot</h1>
+        <div class="chat-box" id="chat-box">
             {% for chat in chat_history %}
-            <div class="chat-message {{ chat.sender }}">
-                <p>{{ chat.message }}</p>
+            <div class="message-container {{ chat.sender }}">
+                <div class="chat-bubble">
+                    <p>{{ chat.message | safe }}</p>
+                </div>
+                {% if chat.sender == 'bot' and chat.status %}
+                    {# Logic to extract the status word for CSS class #}
+                    {% set status_class = chat.status.split(' ')[1] | lower if chat.status.split(' ') | length > 1 else 'neutral' %}
+                    <div class="chat-status status-{{ status_class }}">
+                        {{ chat.status }}
+                    </div>
+                {% endif %}
             </div>
-            {% if chat.status %}
-            <div class="chat-status">
-                <p>{{ chat.status }}</p>
-            </div>
-            {% endif %}
             {% endfor %}
         </div>
-        <form action="/chatbot" method="post">
-            <input type="text" name="text" placeholder="Type your message..." {% if conversation_over %}disabled{% endif %}>
+        <form id="chat-form" action="/chatbot" method="post" class="chat-input-area">
+            <input type="text" id="chat-input" name="text" placeholder="Type your message..." autocomplete="off" {% if conversation_over %}disabled{% endif %}>
             <button type="submit" {% if conversation_over %}disabled{% endif %}>Send</button>
         </form>
-        <p style="font-size: 0.8em; color: #666;">Type 'reset' to start a new conversation.</p>
+        <p class="reset-notice">Type 'reset' to start a new conversation.</p>
     </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const chatBox = document.getElementById('chat-box');
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+    </script>
 </body>
 </html>

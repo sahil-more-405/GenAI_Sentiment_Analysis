@@ -3,7 +3,7 @@ import torch
 import torch.nn.functional as F
 
 # Load the fine-tuned model and tokenizer
-model_path = "./filtered_data_model"
+model_path = "./weighted_loss_model"
 model = DistilBertForSequenceClassification.from_pretrained(model_path)
 tokenizer = DistilBertTokenizer.from_pretrained(model_path)
 
