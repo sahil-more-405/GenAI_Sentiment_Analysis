@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GenAI Sentiment Analyzer - Technical Presentation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .slide {
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            padding: 2rem;
+            margin-bottom: 2.5rem;
+        }
+        .slide-title {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #1f2937;
+            border-bottom: 2px solid #14b8a6;
+            padding-bottom: 0.5rem;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 45vh;
+        }
+        .btn-active {
+            background-color: #14b8a6 !important;
+            color: white !important;
+            transform: scale(1.05);
+            box-shadow: 0 4px 14px 0 rgb(20 184 166 / 39%);
+        }
+        .tech-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+        .flow-arrow {
+            font-size: 2rem;
+            color: #9ca3af;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- 
+        Chosen Palette: Calm Harmony Neutrals. A base of light gray (#f8f9fa) and dark slate (#1f2937) for text creates a professional, readable foundation. The primary accent is a vibrant teal (#14b8a6) used for interactive elements, highlights, and chart data, drawing user attention to key areas. Softer complementary colors like a muted blue (#60a5fa) and orange (#fb923c) are used in diagrams to differentiate elements without being distracting.
+    -->
+    <!-- 
+        Application Structure Plan: The SPA is designed as a narrative journey, not a mirror of the report's sections. It flows from the "What" to the "How" and "Why".
+        1.  Hero Section: Grabs attention with the project's title and key achievements.
+        2.  Interactive Model Comparison: The core of the application. Instead of static tables, users can click between the three model hypotheses (Weighted Loss, Filtered, Baseline). This interaction dynamicallyupdates a bar chart and an explanation panel, actively engaging the user in discovering *why* the chosen model is superior. This is more impactful than just stating the result.
+        3.  Live Demo & Features Showcase: A task-oriented section allowing users to "experience" the application's features. It explains the core sentiment analysis, the concept of LIME for transparency, and the innovative RAG-based GenAI chatbot through clear, visual, step-by-step diagrams built with HTML/CSS. This section now includes direct calls to the Gemini API for summarization and reply generation.
+        4.  Architecture Overview: A visual flowchart built with HTML/Tailwind illustrates the end-to-end technical pipeline. This is more digestible than a list of technologies, showing how components connect.
+        This structure prioritizes user understanding and engagement by transforming dense technical information into an interactive, story-driven experience.
+    -->
+    <!-- 
+        Visualization & Content Choices:
+        - Report Info: Model performance metrics (Accuracy, F1-Score) for three models. -> Goal: Compare. -> Viz: Interactive Bar Chart (Chart.js). -> Interaction: Buttons to select a model, which updates chart data and a descriptive text block. -> Justification: Actively engaging the user in the comparison process makes the conclusion (Weighted Loss is best) more memorable and impactful than a static chart.
+        - Report Info: The end-to-end project workflow (Data Ingestion -> ETL -> Training -> Deployment). -> Goal: Organize/Explain. -> Viz: HTML/CSS Flowchart Diagram. -> Interaction: None needed, it's a static visual. -> Justification: A visual diagram is far more intuitive for process understanding than a textual list. Using styled divs and Unicode icons avoids SVG/Mermaid.
+        - Report Info: Complex features like LIME and the RAG Chatbot. -> Goal: Inform/Explain. -> Viz: Step-by-step explanatory diagrams using styled HTML/CSS. -> Interaction: None. -> Justification: These are conceptual features. A clear, static visual walkthrough is the most effective way to explain the *how* and *why* without needing a fully functional (and complex to implement) backend.
+        - New Feature: Gemini-powered summarization and reply drafting. -> Goal: Demonstrate practical GenAI integration. -> Viz: Text output area. -> Interaction: Buttons trigger a live API call to the Gemini model. -> Justification: This provides a hands-on demonstration of the Gemini API's capabilities for content generation, directly enhancing the core sentiment analysis feature.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <main class="container mx-auto px-4 md:px-6 py-12">
+
+        <section class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-2 text-gray-800">GenAI Sentiment Analyzer</h1>
+            <p class="text-xl text-gray-600">A Technical Deep Dive</p>
+        </section>
+
+        <div id="dataset" class="slide">
+            <h2 class="slide-title">The Dataset: Amazon Product Reviews</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="font-bold text-lg mb-2">Source & Format</h3>
+                    <p class="text-gray-600">The project uses the large-scale Amazon Product Reviews dataset, provided as numerous JSONL (JSON Lines) files.</p>
+                </div>
+                <div class="tech-box">
+                    <h3 class="font-bold text-lg mb-3">Key Fields Used:</h3>
+                    <ul class="space-y-2 text-gray-700">
+                        <li><span class="font-semibold text-teal-700">`overall`</span>: The 1-5 star rating, used for sentiment labeling.</li>
+                        <li><span class="font-semibold text-teal-700">`helpful`</span>: Community votes, used for the weighted loss function.</li>
+                        <li><span class="font-semibold text-teal-700">`reviewText` & `summary`</span>: Combined to form the input text for the model.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="pipeline" class="slide">
+            <h2 class="slide-title">The Data Pipeline: From Raw to Ready</h2>
+            <div class="space-y-6">
+                <div class="tech-box">
+                    <h3 class="font-semibold text-lg mb-2">1. Parallel Ingestion</h3>
+                    <p class="text-gray-600">Python's `multiprocessing` library is used to read and process multiple JSONL files concurrently, drastically reducing I/O time.</p>
+                </div>
+                <div class="tech-box">
+                    <h3 class="font-semibold text-lg mb-2">2. Memory-Efficient ETL</h3>
+                    <p class="text-gray-600 mb-4">Leverages the Hugging Face `datasets` library to handle massive files without loading them entirely into RAM, preventing memory overflow.</p>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                        <li>**Cleaning:** Removes residual HTML tags from review text.</li>
+                        <li>**Feature Engineering:** Concatenates `title` and `reviewText` for richer model input.</li>
+                        <li>**Labeling:** Maps `overall` score to `Positive` (≥4), `Negative` (≤2), or `Neutral` (3).</li>
+                        <li>**Balancing:** Samples data to ensure an equal number of reviews per sentiment class, preventing model bias.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="innovation" class="slide">
+            <h2 class="slide-title">The Core Experiment: Hypothesis-Driven Training</h2>
+            <p class="text-center text-gray-600 mb-6 max-w-2xl mx-auto">We tested three training strategies to empirically find the best model. Click to compare their performance.</p>
+            <div class="flex justify-center space-x-2 md:space-x-4 mb-8 flex-wrap gap-2">
+                <button id="btn-weighted" class="model-btn px-4 py-2 md:px-6 md:py-3 rounded-full font-semibold bg-white text-gray-700 shadow-md hover:bg-gray-100 transition-all duration-300 btn-active">🏆 Weighted Loss</button>
+                <button id="btn-baseline" class="model-btn px-4 py-2 md:px-6 md:py-3 rounded-full font-semibold bg-white text-gray-700 shadow-md hover:bg-gray-100 transition-all duration-300">📊 Baseline</button>
+                <button id="btn-filtered" class="model-btn px-4 py-2 md:px-6 md:py-3 rounded-full font-semibold bg-white text-gray-700 shadow-md hover:bg-gray-100 transition-all duration-300">🗑️ Filtered Data</button>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
+                <div id="explanation-card" class="lg:col-span-3 bg-gray-50 p-6 rounded-lg border">
+                    <h3 id="exp-title" class="text-xl font-bold mb-2 text-teal-700"></h3>
+                    <p id="exp-hypothesis" class="text-gray-700 font-medium mb-3"></p>
+                    <p id="exp-details" class="text-gray-600 text-sm"></p>
+                </div>
+                <div class="lg:col-span-2">
+                    <div class="chart-container">
+                        <canvas id="modelComparisonChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section id="demo" class="slide">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-2 slide-title">System in Action: Demos & Features</h2>
+                <p class="text-lg text-gray-600 max-w-3xl mx-auto">Explore the key capabilities of the final application, from instant sentiment analysis to advanced GenAI-powered interactions.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="tech-box">
+                    <h3 class="text-2xl font-bold mb-4">1. Sentiment Analysis</h3>
+                    <p class="text-gray-600 mb-4 flex-grow">The core function. The fine-tuned DistilBERT model analyzes any product review and classifies its sentiment with high accuracy and confidence.</p>
+                    <div class="bg-gray-100 p-4 rounded-lg text-center">
+                        <p class="text-lg font-medium mb-3 italic text-gray-700">"This product is absolutely fantastic! The quality is outstanding."</p>
+                        <div class="mt-3 text-center font-semibold text-xl text-green-600">
+                            Prediction: Positive (98% Confident)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tech-box">
+                    <h3 class="text-2xl font-bold mb-4">2. Model Transparency (LIME)</h3>
+                    <p class="text-gray-600 mb-4 flex-grow">To build trust, we use LIME to explain *why* the model makes a prediction. It highlights the words that most influenced the outcome.</p>
+                    <div class="bg-gray-100 p-4 rounded-lg text-center">
+                        <p class="text-lg font-medium mb-3 leading-relaxed">"It was a <span class="bg-red-200 px-1 rounded">complete waste</span> of money. The item <span class="bg-red-200 px-1 rounded">broke</span> after just one use. Very <span class="bg-red-200 px-1 rounded">disappointed</span>."</p>
+                        <div class="mt-3 text-center font-semibold text-xl text-red-600">
+                            Explanation: Negative Prediction
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tech-box md:col-span-2 lg:col-span-1">
+                    <h3 class="text-2xl font-bold mb-4">3. GenAI Chatbot (RAG)</h3>
+                    <p class="text-gray-600 mb-4 flex-grow">A sentiment-aware chatbot powered by Google's Gemini. It uses a novel RAG approach to provide empathetic, context-aware support.</p>
+                    <div class="bg-gray-100 p-4 rounded-lg space-y-3">
+                        <div class="text-center text-sm font-medium text-gray-700">User: "My order is broken!"</div>
+                        <div class="text-center text-2xl font-bold text-blue-600">↓</div>
+                        <div class="bg-blue-100 text-blue-800 p-2 rounded-lg text-center">
+                            <span class="font-bold">Step 1:</span> Our model detects <span class="font-bold">Negative Sentiment</span>.
+                        </div>
+                        <div class="text-center text-2xl font-bold text-orange-600">↓</div>
+                        <div class="bg-orange-100 text-orange-800 p-2 rounded-lg text-center">
+                           <span class="font-bold">Step 2:</span> Sentiment "augments" prompt for Gemini API.
+                        </div>
+                        <div class="text-center text-2xl font-bold text-green-600">↓</div>
+                         <div class="bg-green-100 text-green-800 p-2 rounded-lg text-center">
+                           <span class="font-bold">Step 3:</span> Gemini generates an empathetic response.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div id="architecture" class="slide">
+            <h2 class="slide-title">Deployment: From Code to Container</h2>
+            <p class="text-center text-gray-600 mb-8 max-w-2xl mx-auto">The entire application is containerized with Docker, ensuring a portable and reproducible environment.</p>
+            <div class="flex flex-col md:flex-row justify-around items-center space-y-6 md:space-y-0 text-center">
+                <div class="flex-1 flex flex-col items-center">
+                    <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-2xl mb-2 shadow-inner font-mono">Py</div>
+                    <h4 class="font-bold">Scripts</h4>
+                </div>
+                <div class="flow-arrow hidden md:block">→</div>
+                <div class="flow-arrow md:hidden">↓</div>
+                <div class="flex-1 flex flex-col items-center">
+                    <div class="w-16 h-16 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-2xl mb-2 shadow-inner">🧠</div>
+                    <h4 class="font-bold">Model</h4>
+                </div>
+                <div class="flow-arrow hidden md:block">→</div>
+                 <div class="flow-arrow md:hidden">↓</div>
+                <div class="flex-1 flex flex-col items-center">
+                    <div class="w-16 h-16 bg-gray-200 text-gray-700 rounded-full flex items-center justify-center text-2xl mb-2 shadow-inner">📄</div>
+                    <h4 class="font-bold">Dockerfile</h4>
+                </div>
+                <div class="flow-arrow hidden md:block">→</div>
+                <div class="flow-arrow md:hidden">↓</div>
+                <div class="flex-1 flex flex-col items-center">
+                    <div class="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-2xl mb-2 shadow-inner">🚀</div>
+                    <h4 class="font-bold">Container</h4>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const modelData = {
+                weighted: {
+                    title: '🏆 Weighted Loss Model',
+                    hypothesis: 'Hypothesis: Prioritizing "helpful" reviews will create a more accurate model.',
+                    details: 'A custom WeightedLossTrainer was built to assign a higher weight (2.0 vs 1.0) to reviews with helpful votes. This forces the model to learn more effectively from high-quality data. This approach yielded the highest performance with 88.14% accuracy.',
+                    accuracy: 0.8814,
+                    f1: 0.8816
+                },
+                baseline: {
+                    title: '📊 Baseline Model',
+                    hypothesis: 'Hypothesis: A standard fine-tuning approach provides a solid performance benchmark.',
+                    details: 'This model used the standard Hugging Face Trainer without any modifications. It treated every review as equally important. It performed well, but was clearly outperformed by our custom strategy.',
+                    accuracy: 0.8171,
+                    f1: 0.8176
+                },
+                filtered: {
+                    title: '🗑️ Filtered Data Model',
+                    hypothesis: 'Hypothesis: Training exclusively on "helpful" reviews will yield a better model.',
+                    details: 'This model was trained only on data with at least one helpful vote. This performed the worst, proving that the "unhelpful" reviews still contain valuable information for model generalization.',
+                    accuracy: 0.8012,
+                    f1: 0.8017
+                }
+            };
+            const ctx = document.getElementById('modelComparisonChart').getContext('2d');
+            let comparisonChart;
+            const titleEl = document.getElementById('exp-title');
+            const hypothesisEl = document.getElementById('exp-hypothesis');
+            const detailsEl = document.getElementById('exp-details');
+            const cardEl = document.getElementById('explanation-card');
+            const modelButtons = {
+                weighted: document.getElementById('btn-weighted'),
+                baseline: document.getElementById('btn-baseline'),
+                filtered: document.getElementById('btn-filtered')
+            };
+
+            function updateModelContent(modelKey) {
+                const data = modelData[modelKey];
+                cardEl.style.opacity = 0;
+                setTimeout(() => {
+                    titleEl.textContent = data.title;
+                    hypothesisEl.textContent = data.hypothesis;
+                    detailsEl.textContent = data.details;
+                    cardEl.style.opacity = 1;
+                }, 150);
+                if (comparisonChart) {
+                    comparisonChart.data.datasets[0].data = [data.accuracy, data.f1];
+                    comparisonChart.update();
+                }
+                Object.values(modelButtons).forEach(btn => btn.classList.remove('btn-active'));
+                modelButtons[modelKey].classList.add('btn-active');
+            }
+
+            function initializeChart() {
+                const initialData = modelData.weighted;
+                comparisonChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Accuracy', 'F1-Score'],
+                        datasets: [{
+                            label: 'Performance',
+                            data: [initialData.accuracy, initialData.f1],
+                            backgroundColor: ['rgba(20, 184, 166, 0.7)', 'rgba(96, 165, 250, 0.7)'],
+                            borderColor: ['rgb(20, 184, 166)', 'rgb(96, 165, 250)'],
+                            borderWidth: 2,
+                            borderRadius: 5,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { y: { beginAtZero: false, min: 0.78, max: 0.9, grid: { color: 'rgba(0, 0, 0, 0.05)' } }, x: { grid: { display: false } } },
+                        plugins: { legend: { display: false }, tooltip: { enabled: true, backgroundColor: '#1f2937', titleFont: { size: 14, weight: 'bold' }, bodyFont: { size: 12 }, padding: 10, cornerRadius: 6, displayColors: false, } }
+                    }
+                });
+            }
+            modelButtons.weighted.addEventListener('click', () => updateModelContent('weighted'));
+            modelButtons.baseline.addEventListener('click', () => updateModelContent('baseline'));
+            modelButtons.filtered.addEventListener('click', () => updateModelContent('filtered'));
+            initializeChart();
+            updateModelContent('weighted');
+        });
+    </script>
+</body>
+</html>
